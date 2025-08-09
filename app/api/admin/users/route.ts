@@ -26,7 +26,7 @@ export async function GET(req: Request) {
 
     let query = admin
       .from("profiles")
-      .select("id,email,full_name,role,created_at,updated_at", { count: "exact" })
+      .select("id,email,full_name,role,created_at", { count: "exact" })
       .order("created_at", { ascending: false })
       .range(from, to)
 

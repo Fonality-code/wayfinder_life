@@ -184,10 +184,14 @@ export default function LiveTrackingPage() {
               <p className="text-sm font-medium text-slate-600">Delivered Today</p>
               <p className="text-2xl font-bold text-slate-900">
                 {
-                  packages.filter(
-                    (p) =>
-                      p.status === "delivered" && new Date(p.updated_at).toDateString() === new Date().toDateString(),
-                  ).length
+                  packages.filter((p) => {
+                    try {
+                      return p.status === "delivered" && p.updated_at && new Date(p.updated_at).toDateString() === new Date().toDateString()
+                    } catch (e) {
+                      console.warn("Error parsing updated_at for package:", p.id, p.updated_at)
+                      return false
+                    }
+                  }).length
                 }
               </p>
             </div>

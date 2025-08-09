@@ -30,9 +30,9 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     const admin = createAdminClient()
     const { data, error } = await admin
       .from("profiles")
-      .update({ ...parsed.data, updated_at: new Date().toISOString() })
+      .update({ ...parsed.data })
       .eq("id", id)
-      .select("id,email,full_name,role,created_at,updated_at")
+      .select("id,email,full_name,role,created_at")
       .maybeSingle()
 
     if (error) return NextResponse.json({ error: error.message }, { status: 400 })

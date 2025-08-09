@@ -56,9 +56,9 @@ function AdminDashboardClient() {
 
       // Fetch all data in parallel
       const [packagesRes, routesRes, usersRes, trackingRes] = await Promise.all([
-        fetch("/api/admin/packages?limit=100", { cache: "no-store" }),
+        fetch("/api/admin/packages?pageSize=100", { cache: "no-store" }),
         fetch("/api/admin/routes", { cache: "no-store" }),
-        fetch("/api/admin/users?limit=100", { cache: "no-store" }),
+        fetch("/api/admin/users?pageSize=100", { cache: "no-store" }),
         fetch("/api/admin/tracking", { cache: "no-store" }),
       ])
 
