@@ -19,10 +19,6 @@ export default async function DashboardPage() {
     redirect("/auth")
   }
 
-  // If admin lands on /dashboard, send them to /admin once.
-  if (role === "admin") {
-    redirect("/admin")
-  }
 
   // Load packages for this user using the normal server client inside the client component
   // or keep it server-side here and pass via props depending on your existing implementation.

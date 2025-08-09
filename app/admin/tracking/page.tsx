@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { createClient } from "@/lib/supabase/client"
+// Removed Supabase client usage
 import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -31,24 +31,37 @@ export default function LiveTrackingPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
-  const supabase = createClient()
-
   useEffect(() => {
     fetchData()
   }, [])
 
   const fetchData = async () => {
-    const [packagesResult, routesResult, updatesResult] = await Promise.all([
-      supabase.from("packages").select("*").order("created_at", { ascending: false }),
-      supabase.from("routes").select("*"),
-      supabase.from("tracking_updates").select("*").order("timestamp", { ascending: false }),
-    ])
+    try {
+      setIsLoading(true)
+      const [packagesRes, routesRes, updatesRes] = await Promise.all([
+        fetch("/api/admin/packages", { cache: "no-store" }),
+        fetch("/api/admin/routes", { cache: "no-store" }),
+        fetch("/api/admin/tracking", { cache: "no-store" }),
+      ])
 
-    if (packagesResult.data) setPackages(packagesResult.data)
-    if (routesResult.data) setRoutes(routesResult.data)
-    if (updatesResult.data) setTrackingUpdates(updatesResult.data)
+      const [packagesJson, routesJson, updatesJson] = await Promise.all([
+        packagesRes.json(),
+        routesRes.json(),
+        updatesRes.json(),
+      ])
 
-    setIsLoading(false)
+      if (!packagesRes.ok) throw new Error(packagesJson.error || "Failed to fetch packages")
+      if (!routesRes.ok) throw new Error(routesJson.error || "Failed to fetch routes")
+      if (!updatesRes.ok) throw new Error(updatesJson.error || "Failed to fetch tracking updates")
+
+      setPackages(packagesJson.data || [])
+      setRoutes(routesJson.data || [])
+      setTrackingUpdates(updatesJson.data || [])
+    } catch (e: any) {
+      toast({ title: "Error", description: e?.message || "Failed to load data", variant: "destructive" })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleAddUpdate = async (formData: FormData) => {
@@ -58,26 +71,30 @@ export default function LiveTrackingPage() {
       package_id: selectedPackage.id,
       location: formData.get("location") as string,
       status: formData.get("status") as string,
-      description: formData.get("description") as string,
-      latitude: formData.get("latitude") ? Number.parseFloat(formData.get("latitude") as string) : null,
-      longitude: formData.get("longitude") ? Number.parseFloat(formData.get("longitude") as string) : null,
+      description: (formData.get("description") as string) || null,
+      latitude: (formData.get("latitude") as string)?.length
+        ? Number.parseFloat(formData.get("latitude") as string)
+        : null,
+      longitude: (formData.get("longitude") as string)?.length
+        ? Number.parseFloat(formData.get("longitude") as string)
+        : null,
     }
 
-    const { error } = await supabase.from("tracking_updates").insert([updateData])
+    try {
+      const res = await fetch("/api/admin/tracking", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updateData),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || "Failed to add update")
 
-    if (error) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      })
-    } else {
-      toast({
-        title: "Success",
-        description: "Tracking update added successfully",
-      })
+      toast({ title: "Success", description: "Tracking update added successfully" })
       setIsDialogOpen(false)
-      fetchData()
+      // Refresh tracking updates list
+      await fetchData()
+    } catch (e: any) {
+      toast({ title: "Error", description: e?.message || "Failed to add update", variant: "destructive" })
     }
   }
 

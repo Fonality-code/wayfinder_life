@@ -2,17 +2,13 @@ export interface Package {
   id: string
   tracking_number: string
   sender_name: string
-  recipient_name: string
   sender_address: string
+  recipient_name: string
   recipient_address: string
-  current_location: string
-  destination: string
-  status: "pending" | "picked_up" | "in_transit" | "out_for_delivery" | "delivered" | "cancelled" | "delayed"
-  estimated_delivery: string
-  actual_delivery?: string
-  weight?: number
-  dimensions?: string
-  service_type: string
+  package_type: string
+  weight: number | null
+  status: "pending" | "in_transit" | "delivered" | "cancelled"
+  user_id?: string | null
   created_at: string
   updated_at: string
 }
@@ -20,20 +16,22 @@ export interface Package {
 export interface TrackingUpdate {
   id: string
   package_id: string
-  status: string
   location: string
-  description: string
+  status: string
+  description: string | null
   timestamp: string
+  latitude?: number | null
+  longitude?: number | null
   created_at: string
 }
 
 export interface Profile {
   id: string
-  email: string
-  full_name?: string
+  email: string | null
+  full_name?: string | null
   role: "user" | "admin"
   created_at: string
-  updated_at: string
+  updated_at?: string
 }
 
 export interface Route {
@@ -41,9 +39,11 @@ export interface Route {
   name: string
   origin: string
   destination: string
-  distance: number
-  estimated_duration: number
-  waypoints?: string[]
+  estimated_duration_hours: number | null
+  origin_lat?: number | null
+  origin_lng?: number | null
+  destination_lat?: number | null
+  destination_lng?: number | null
+  color?: string | null
   created_at: string
-  updated_at: string
 }

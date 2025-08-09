@@ -23,7 +23,7 @@ export async function getUserAndRole() {
 
   const { data: existing, error: selectErr } = await admin
     .from("profiles")
-    .select("id, role, email, full_name, avatar_url")
+    .select("id, role, email, full_name")
     .eq("id", user.id)
     .maybeSingle()
 
@@ -58,7 +58,7 @@ export async function getUserAndRole() {
     // Re-select for a stable role response.
     const { data: after, error: afterErr } = await admin
       .from("profiles")
-      .select("id, role, email, full_name, avatar_url")
+      .select("id, role, email, full_name")
       .eq("id", user.id)
       .maybeSingle()
 

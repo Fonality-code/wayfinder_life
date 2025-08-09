@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -13,6 +13,7 @@ import { toast } from "@/hooks/use-toast"
 import { GradientCard } from "@/components/ui/gradient-card"
 
 export default function SettingsPage() {
+  const [loading, setLoading] = useState(true)
   const [settings, setSettings] = useState({
     siteName: "Wayfinder",
     siteDescription: "Advanced Package Tracking Platform",
@@ -25,32 +26,62 @@ export default function SettingsPage() {
     requireEmailVerification: true,
   })
 
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await fetch("/api/admin/settings", { cache: "no-store" })
+        const json = await res.json()
+        if (!res.ok) throw new Error(json.error || "Failed to load settings")
+        if (json.data) setSettings({ ...settings, ...json.data })
+      } catch (e: any) {
+        toast({ title: "Error", description: e?.message || "Failed to load settings", variant: "destructive" })
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const persistSettings = async (payload: Partial<typeof settings>, successMsg: string) => {
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || "Failed to save settings")
+      setSettings((prev) => ({ ...prev, ...(json.data || {}) }))
+      toast({ title: "Success", description: successMsg })
+    } catch (e: any) {
+      toast({ title: "Error", description: e?.message || "Failed to save settings", variant: "destructive" })
+    }
+  }
+
   const handleSaveGeneral = async (formData: FormData) => {
     const newSettings = {
-      ...settings,
       siteName: formData.get("siteName") as string,
       siteDescription: formData.get("siteDescription") as string,
       supportEmail: formData.get("supportEmail") as string,
     }
-    setSettings(newSettings)
-    toast({
-      title: "Success",
-      description: "General settings saved successfully",
-    })
+    setSettings((prev) => ({ ...prev, ...newSettings }))
+    await persistSettings(newSettings, "General settings saved successfully")
   }
 
-  const handleSaveSecurity = async (formData: FormData) => {
-    toast({
-      title: "Success",
-      description: "Security settings updated successfully",
-    })
+  const handleSaveSecurity = async (_formData: FormData) => {
+    await persistSettings({ requireEmailVerification: settings.requireEmailVerification }, "Security settings updated successfully")
   }
 
   const handleSaveNotifications = async () => {
-    toast({
-      title: "Success",
-      description: "Notification settings saved successfully",
-    })
+    await persistSettings(
+      {
+        enableNotifications: settings.enableNotifications,
+        enableSMS: settings.enableSMS,
+        enableEmailAlerts: settings.enableEmailAlerts,
+      },
+      "Notification settings saved successfully",
+    )
   }
 
   return (
@@ -86,11 +117,11 @@ export default function SettingsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="siteName">Site Name</Label>
-                    <Input id="siteName" name="siteName" defaultValue={settings.siteName} />
+                    <Input id="siteName" name="siteName" defaultValue={settings.siteName} disabled={loading} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="supportEmail">Support Email</Label>
-                    <Input id="supportEmail" name="supportEmail" type="email" defaultValue={settings.supportEmail} />
+                    <Input id="supportEmail" name="supportEmail" type="email" defaultValue={settings.supportEmail} disabled={loading} />
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -100,6 +131,7 @@ export default function SettingsPage() {
                     name="siteDescription"
                     defaultValue={settings.siteDescription}
                     rows={3}
+                    disabled={loading}
                   />
                 </div>
                 <div className="space-y-4">
@@ -111,6 +143,7 @@ export default function SettingsPage() {
                     <Switch
                       checked={settings.maintenanceMode}
                       onCheckedChange={(checked) => setSettings({ ...settings, maintenanceMode: checked })}
+                      disabled={loading}
                     />
                   </div>
                   <div className="flex items-center justify-between">
@@ -121,10 +154,11 @@ export default function SettingsPage() {
                     <Switch
                       checked={settings.allowRegistration}
                       onCheckedChange={(checked) => setSettings({ ...settings, allowRegistration: checked })}
+                      disabled={loading}
                     />
                   </div>
                 </div>
-                <Button type="submit" className="w-full">
+                <Button type="submit" className="w-full" disabled={loading}>
                   Save General Settings
                 </Button>
               </form>
@@ -154,24 +188,25 @@ export default function SettingsPage() {
                     <Switch
                       checked={settings.requireEmailVerification}
                       onCheckedChange={(checked) => setSettings({ ...settings, requireEmailVerification: checked })}
+                      disabled={loading}
                     />
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="sessionTimeout">Session Timeout (minutes)</Label>
-                    <Input id="sessionTimeout" name="sessionTimeout" type="number" defaultValue="60" />
+                    <Input id="sessionTimeout" name="sessionTimeout" type="number" defaultValue="60" disabled />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="maxLoginAttempts">Max Login Attempts</Label>
-                    <Input id="maxLoginAttempts" name="maxLoginAttempts" type="number" defaultValue="5" />
+                    <Input id="maxLoginAttempts" name="maxLoginAttempts" type="number" defaultValue="5" disabled />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="allowedDomains">Allowed Email Domains (optional)</Label>
-                  <Textarea id="allowedDomains" name="allowedDomains" placeholder="example.com, company.org" rows={3} />
+                  <Textarea id="allowedDomains" name="allowedDomains" placeholder="example.com, company.org" rows={3} disabled />
                 </div>
-                <Button type="submit" className="w-full">
+                <Button type="submit" className="w-full" disabled={loading}>
                   Save Security Settings
                 </Button>
               </form>
@@ -199,6 +234,7 @@ export default function SettingsPage() {
                     <Switch
                       checked={settings.enableNotifications}
                       onCheckedChange={(checked) => setSettings({ ...settings, enableNotifications: checked })}
+                      disabled={loading}
                     />
                   </div>
                   <div className="flex items-center justify-between">
@@ -209,6 +245,7 @@ export default function SettingsPage() {
                     <Switch
                       checked={settings.enableSMS}
                       onCheckedChange={(checked) => setSettings({ ...settings, enableSMS: checked })}
+                      disabled={loading}
                     />
                   </div>
                   <div className="flex items-center justify-between">
@@ -219,10 +256,11 @@ export default function SettingsPage() {
                     <Switch
                       checked={settings.enableEmailAlerts}
                       onCheckedChange={(checked) => setSettings({ ...settings, enableEmailAlerts: checked })}
+                      disabled={loading}
                     />
                   </div>
                 </div>
-                <Button onClick={handleSaveNotifications} className="w-full">
+                <Button onClick={handleSaveNotifications} className="w-full" disabled={loading}>
                   Save Notification Settings
                 </Button>
               </div>
@@ -251,7 +289,7 @@ export default function SettingsPage() {
                       <p>Provider: Supabase</p>
                       <p>Status: Connected</p>
                       <p>Last Backup: 2 hours ago</p>
-                      <Button variant="outline" size="sm" className="mt-3 bg-transparent">
+                      <Button variant="outline" size="sm" className="mt-3 bg-transparent" disabled>
                         Manage
                       </Button>
                     </div>
@@ -266,7 +304,7 @@ export default function SettingsPage() {
                       <p>Public Key: wf_pk_...</p>
                       <p>Secret Key: wf_sk_...</p>
                       <p>Rate Limit: 1000/hour</p>
-                      <Button variant="outline" size="sm" className="mt-3 bg-transparent">
+                      <Button variant="outline" size="sm" className="mt-3 bg-transparent" disabled>
                         Regenerate
                       </Button>
                     </div>
@@ -276,8 +314,8 @@ export default function SettingsPage() {
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold">Webhook Endpoints</h3>
                   <div className="space-y-2">
-                    <Input placeholder="https://your-app.com/webhooks/wayfinder" />
-                    <Button variant="outline" className="w-full bg-transparent">
+                    <Input placeholder="https://your-app.com/webhooks/wayfinder" disabled />
+                    <Button variant="outline" className="w-full bg-transparent" disabled>
                       Add Webhook
                     </Button>
                   </div>

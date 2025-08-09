@@ -54,11 +54,19 @@ CREATE TABLE IF NOT EXISTS tracking_updates (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- App-level settings table (singleton row)
+CREATE TABLE IF NOT EXISTS app_settings (
+  id TEXT PRIMARY KEY DEFAULT 'singleton',
+  data JSONB NOT NULL DEFAULT '{}',
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Enable Row Level Security
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE packages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE routes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tracking_updates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE app_settings ENABLE ROW LEVEL SECURITY;
 
 -- Create function to handle new user registration
 CREATE OR REPLACE FUNCTION public.handle_new_user()
@@ -100,6 +108,7 @@ DROP POLICY IF EXISTS "Admins can manage all tracking updates" ON tracking_updat
 DROP POLICY IF EXISTS "Anyone can view tracking updates" ON tracking_updates;
 DROP POLICY IF EXISTS "Anyone can view routes" ON routes;
 DROP POLICY IF EXISTS "Admins can manage routes" ON routes;
+DROP POLICY IF EXISTS "Admin can manage app settings" ON app_settings;
 
 -- RLS Policies for profiles table
 CREATE POLICY "Users can view own profile" ON profiles
@@ -174,6 +183,14 @@ CREATE POLICY "Admins can manage routes" ON routes
       SELECT 1 FROM profiles
       WHERE id = auth.uid() AND role = 'admin'
     )
+  );
+
+-- RLS Policy for app_settings table
+CREATE POLICY "Admin can manage app settings" ON app_settings
+  FOR ALL USING (
+    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
+  ) WITH CHECK (
+    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
   );
 
 -- Grant necessary permissions

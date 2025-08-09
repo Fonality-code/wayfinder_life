@@ -1,12 +1,13 @@
 import { redirect } from "next/navigation"
-import { getUserAndRole } from "@/lib/auth/get-user-with-role"
+import { getAuthenticatedUserWithRole } from "@/lib/auth/debug-auth"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Package, Route, TrendingUp, Users, Lock } from 'lucide-react'
+import { Lock } from 'lucide-react'
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import AdminDashboardClient from "@/components/admin/dashboard-stats"
 
 export default async function AdminDashboard() {
-  const { user, role } = await getUserAndRole()
+  const { user, role } = await getAuthenticatedUserWithRole()
 
   if (!user) {
     redirect("/auth")
@@ -38,37 +39,9 @@ export default async function AdminDashboard() {
     )
   }
 
-  // Example dashboard content (same as before)
-  // You can keep your existing admin UI here.
-  // Placeholder stats; replace with your real queries if needed.
-  const stats = [
-    { title: "Total Packages", value: 0, icon: Package, description: "Packages in the system" },
-    { title: "Active Routes", value: 0, icon: Route, description: "Available shipping routes" },
-    { title: "In Transit", value: 0, icon: TrendingUp, description: "Packages currently shipping" },
-    { title: "Delivered Today", value: 0, icon: Users, description: "Packages delivered today" },
-  ]
-
   return (
-    <div className="space-y-6 p-6">
-      <div>
-        <h1 className="text-3xl font-bold">Wayfinder Dashboard</h1>
-        <p className="text-muted-foreground">Welcome to your advanced package tracking admin dashboard</p>
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <Card key={stat.title}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-              <stat.icon className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <p className="text-xs text-muted-foreground">{stat.description}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+    <div className="space-y-8">
+      <AdminDashboardClient />
     </div>
   )
 }

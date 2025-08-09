@@ -1,20 +1,13 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { createClient } from "@/lib/supabase/client"
+// Removed createClient and Supabase usage
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Plus, Edit, Map, MapPin, Palette, RefreshCw } from "lucide-react"
@@ -31,7 +24,7 @@ const colorOptions = [
   { name: "Purple", value: "#8B5CF6", class: "bg-purple-500" },
   { name: "Orange", value: "#F59E0B", class: "bg-orange-500" },
   { name: "Pink", value: "#EC4899", class: "bg-pink-500" },
-]
+] as const
 
 // Sample coordinates for major cities
 const cityCoordinates = {
@@ -43,7 +36,7 @@ const cityCoordinates = {
   "Seattle, WA": { lat: 47.6062, lng: -122.3321 },
   "Portland, OR": { lat: 45.5152, lng: -122.6784 },
   "London, UK": { lat: 51.5074, lng: -0.1278 },
-}
+} as const
 
 export default function RoutesPage() {
   const [routes, setRoutes] = useState<Route[]>([])
@@ -54,30 +47,27 @@ export default function RoutesPage() {
   const [selectedColor, setSelectedColor] = useState("#3B82F6")
   const [mapKey, setMapKey] = useState(0)
 
-  const supabase = createClient()
-
   useEffect(() => {
     fetchRoutes()
   }, [])
 
   const fetchRoutes = async () => {
-    const { data, error } = await supabase.from("routes").select("*").order("created_at", { ascending: false })
-
-    if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to fetch routes",
-        variant: "destructive",
-      })
-    } else {
-      setRoutes(data || [])
+    try {
+      setIsLoading(true)
+      const res = await fetch("/api/admin/routes", { cache: "no-store" })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || "Failed to fetch routes")
+      setRoutes(json.data || [])
+    } catch (e: any) {
+      toast({ title: "Error", description: e?.message || "Failed to fetch routes", variant: "destructive" })
+    } finally {
+      setIsLoading(false)
     }
-    setIsLoading(false)
   }
 
   const autoFillCoordinates = (origin: string, destination: string) => {
-    const originCoords = cityCoordinates[origin as keyof typeof cityCoordinates]
-    const destCoords = cityCoordinates[destination as keyof typeof cityCoordinates]
+    const originCoords = (cityCoordinates as any)[origin]
+    const destCoords = (cityCoordinates as any)[destination]
 
     return {
       origin_lat: originCoords?.lat || null,
@@ -91,55 +81,58 @@ export default function RoutesPage() {
     const origin = formData.get("origin") as string
     const destination = formData.get("destination") as string
 
-    // Auto-fill coordinates if not provided
     const coords = autoFillCoordinates(origin, destination)
 
     const routeData = {
       name: formData.get("name") as string,
       origin,
       destination,
-      estimated_duration_hours: Number.parseInt(formData.get("estimated_duration_hours") as string) || null,
-      origin_lat: formData.get("origin_lat")
+      estimated_duration_hours:
+        (formData.get("estimated_duration_hours") as string)?.length
+          ? Number.parseInt(formData.get("estimated_duration_hours") as string)
+          : null,
+      origin_lat: (formData.get("origin_lat") as string)?.length
         ? Number.parseFloat(formData.get("origin_lat") as string)
-        : coords.origin_lat,
-      origin_lng: formData.get("origin_lng")
+        : (coords.origin_lat as number | null),
+      origin_lng: (formData.get("origin_lng") as string)?.length
         ? Number.parseFloat(formData.get("origin_lng") as string)
-        : coords.origin_lng,
-      destination_lat: formData.get("destination_lat")
+        : (coords.origin_lng as number | null),
+      destination_lat: (formData.get("destination_lat") as string)?.length
         ? Number.parseFloat(formData.get("destination_lat") as string)
-        : coords.destination_lat,
-      destination_lng: formData.get("destination_lng")
+        : (coords.destination_lat as number | null),
+      destination_lng: (formData.get("destination_lng") as string)?.length
         ? Number.parseFloat(formData.get("destination_lng") as string)
-        : coords.destination_lng,
+        : (coords.destination_lng as number | null),
       color: selectedColor,
     }
 
-    let error
-    if (editingRoute) {
-      const { error: updateError } = await supabase.from("routes").update(routeData).eq("id", editingRoute.id)
-      error = updateError
-    } else {
-      const { error: insertError } = await supabase.from("routes").insert([routeData])
-      error = insertError
-    }
+    try {
+      let res: Response
+      if (editingRoute) {
+        res = await fetch(`/api/admin/routes/${editingRoute.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(routeData),
+        })
+      } else {
+        res = await fetch(`/api/admin/routes`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(routeData),
+        })
+      }
 
-    if (error) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      })
-    } else {
-      toast({
-        title: "Success",
-        description: `Route ${editingRoute ? "updated" : "created"} successfully`,
-      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || "Failed to save route")
+
+      toast({ title: "Success", description: `Route ${editingRoute ? "updated" : "created"} successfully` })
       setIsDialogOpen(false)
       setEditingRoute(null)
       setSelectedColor("#3B82F6")
       fetchRoutes()
-      // Force map refresh
       setMapKey((prev) => prev + 1)
+    } catch (e: any) {
+      toast({ title: "Error", description: e?.message || "Save failed", variant: "destructive" })
     }
   }
 
@@ -151,10 +144,7 @@ export default function RoutesPage() {
 
   const refreshMap = () => {
     setMapKey((prev) => prev + 1)
-    toast({
-      title: "Map Refreshed",
-      description: "The map has been reloaded with the latest data",
-    })
+    toast({ title: "Map Refreshed", description: "The map has been reloaded with the latest data" })
   }
 
   return (
@@ -201,96 +191,40 @@ export default function RoutesPage() {
                 <div className="grid grid-cols-1 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">Route Name *</Label>
-                    <Input
-                      id="name"
-                      name="name"
-                      defaultValue={editingRoute?.name}
-                      placeholder="e.g., Express Route NYC-LA"
-                      required
-                    />
+                    <Input id="name" name="name" defaultValue={editingRoute?.name} placeholder="e.g., Express Route NYC-LA" required />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="origin">Origin *</Label>
-                    <Input
-                      id="origin"
-                      name="origin"
-                      defaultValue={editingRoute?.origin}
-                      placeholder="e.g., New York, NY"
-                      required
-                    />
+                    <Input id="origin" name="origin" defaultValue={editingRoute?.origin} placeholder="e.g., New York, NY" required />
                     <p className="text-xs text-slate-500">Coordinates will be auto-filled for major cities</p>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="destination">Destination *</Label>
-                    <Input
-                      id="destination"
-                      name="destination"
-                      defaultValue={editingRoute?.destination}
-                      placeholder="e.g., Los Angeles, CA"
-                      required
-                    />
+                    <Input id="destination" name="destination" defaultValue={editingRoute?.destination} placeholder="e.g., Los Angeles, CA" required />
                   </div>
                 </div>
 
                 <div className="space-y-4">
-                  <Label className="text-base font-semibold">
-                    Geolocation (Optional - Auto-filled for major cities)
-                  </Label>
+                  <Label className="text-base font-semibold">Geolocation (Optional - Auto-filled for major cities)</Label>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="origin_lat" className="text-sm">
-                        Origin Latitude
-                      </Label>
-                      <Input
-                        id="origin_lat"
-                        name="origin_lat"
-                        type="number"
-                        step="any"
-                        defaultValue={editingRoute?.origin_lat}
-                        placeholder="40.7128"
-                      />
+                      <Label htmlFor="origin_lat" className="text-sm">Origin Latitude</Label>
+                      <Input id="origin_lat" name="origin_lat" type="number" step="any" defaultValue={editingRoute?.origin_lat ?? undefined} placeholder="40.7128" />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="origin_lng" className="text-sm">
-                        Origin Longitude
-                      </Label>
-                      <Input
-                        id="origin_lng"
-                        name="origin_lng"
-                        type="number"
-                        step="any"
-                        defaultValue={editingRoute?.origin_lng}
-                        placeholder="-74.0060"
-                      />
+                      <Label htmlFor="origin_lng" className="text-sm">Origin Longitude</Label>
+                      <Input id="origin_lng" name="origin_lng" type="number" step="any" defaultValue={editingRoute?.origin_lng ?? undefined} placeholder="-74.0060" />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="destination_lat" className="text-sm">
-                        Destination Latitude
-                      </Label>
-                      <Input
-                        id="destination_lat"
-                        name="destination_lat"
-                        type="number"
-                        step="any"
-                        defaultValue={editingRoute?.destination_lat}
-                        placeholder="34.0522"
-                      />
+                      <Label htmlFor="destination_lat" className="text-sm">Destination Latitude</Label>
+                      <Input id="destination_lat" name="destination_lat" type="number" step="any" defaultValue={editingRoute?.destination_lat ?? undefined} placeholder="34.0522" />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="destination_lng" className="text-sm">
-                        Destination Longitude
-                      </Label>
-                      <Input
-                        id="destination_lng"
-                        name="destination_lng"
-                        type="number"
-                        step="any"
-                        defaultValue={editingRoute?.destination_lng}
-                        placeholder="-118.2437"
-                      />
+                      <Label htmlFor="destination_lng" className="text-sm">Destination Longitude</Label>
+                      <Input id="destination_lng" name="destination_lng" type="number" step="any" defaultValue={editingRoute?.destination_lng ?? undefined} placeholder="-118.2437" />
                     </div>
                   </div>
                 </div>
@@ -298,28 +232,17 @@ export default function RoutesPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="estimated_duration_hours">Duration (hours)</Label>
-                    <Input
-                      id="estimated_duration_hours"
-                      name="estimated_duration_hours"
-                      type="number"
-                      defaultValue={editingRoute?.estimated_duration_hours}
-                      placeholder="48"
-                    />
+                    <Input id="estimated_duration_hours" name="estimated_duration_hours" type="number" defaultValue={editingRoute?.estimated_duration_hours ?? undefined} placeholder="48" />
                   </div>
                   <div className="space-y-2">
-                    <Label className="flex items-center gap-2">
-                      <Palette className="h-4 w-4" />
-                      Route Color
-                    </Label>
+                    <Label className="flex items-center gap-2"><Palette className="h-4 w-4" />Route Color</Label>
                     <div className="flex gap-2 flex-wrap">
                       {colorOptions.map((color) => (
                         <button
                           key={color.value}
                           type="button"
                           onClick={() => setSelectedColor(color.value)}
-                          className={`w-8 h-8 rounded-full border-2 transition-all ${color.class} ${
-                            selectedColor === color.value ? "border-slate-900 scale-110" : "border-slate-300"
-                          }`}
+                          className={`w-8 h-8 rounded-full border-2 transition-all ${color.class} ${selectedColor === color.value ? "border-slate-900 scale-110" : "border-slate-300"}`}
                           title={color.name}
                         />
                       ))}
@@ -327,10 +250,7 @@ export default function RoutesPage() {
                   </div>
                 </div>
 
-                <Button
-                  type="submit"
-                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                >
+                <Button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
                   {editingRoute ? "Update Route" : "Create Route"}
                 </Button>
               </form>
@@ -404,33 +324,18 @@ export default function RoutesPage() {
                                 Enabled
                               </Badge>
                             ) : (
-                              <Badge variant="outline" className="bg-slate-50 text-slate-500">
-                                Disabled
-                              </Badge>
+                              <Badge variant="outline" className="bg-slate-50 text-slate-500">Disabled</Badge>
                             )}
                           </TableCell>
                           <TableCell>
-                            <div
-                              className="w-6 h-6 rounded-full border-2 border-white shadow-sm"
-                              style={{ backgroundColor: route.color || "#3B82F6" }}
-                            />
+                            <div className="w-6 h-6 rounded-full border-2 border-white shadow-sm" style={{ backgroundColor: route.color || "#3B82F6" }} />
                           </TableCell>
                           <TableCell>
                             <div className="flex gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => openEditDialog(route)}
-                                className="hover:bg-blue-50"
-                              >
+                              <Button variant="outline" size="sm" onClick={() => openEditDialog(route)} className="hover:bg-blue-50">
                                 <Edit className="h-4 w-4" />
                               </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setSelectedRoute(route)}
-                                className="hover:bg-green-50"
-                              >
+                              <Button variant="outline" size="sm" onClick={() => setSelectedRoute(route)} className="hover:bg-green-50">
                                 <Map className="h-4 w-4" />
                               </Button>
                             </div>
@@ -458,12 +363,7 @@ export default function RoutesPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="px-0 pb-0">
-              <RouteMap
-                key={mapKey}
-                routes={routes.filter((r) => r.origin_lat && r.origin_lng)}
-                selectedRoute={selectedRoute}
-                className="border border-slate-200 shadow-sm"
-              />
+              <RouteMap key={mapKey} routes={routes.filter((r) => r.origin_lat && r.origin_lng)} selectedRoute={selectedRoute} className="border border-slate-200 shadow-sm" />
               {selectedRoute && (
                 <div className="mt-4 p-4 bg-white/50 rounded-lg border border-slate-200">
                   <h4 className="font-semibold mb-2">Selected Route: {selectedRoute.name}</h4>
@@ -476,9 +376,7 @@ export default function RoutesPage() {
                     </div>
                     {selectedRoute.origin_lat && selectedRoute.origin_lng && (
                       <div className="col-span-2">
-                        <span className="text-slate-600">Coordinates:</span> {selectedRoute.origin_lat.toFixed(4)},{" "}
-                        {selectedRoute.origin_lng.toFixed(4)} → {selectedRoute.destination_lat?.toFixed(4)},{" "}
-                        {selectedRoute.destination_lng?.toFixed(4)}
+                        <span className="text-slate-600">Coordinates:</span> {selectedRoute.origin_lat.toFixed(4)}, {selectedRoute.origin_lng.toFixed(4)} → {selectedRoute.destination_lat?.toFixed(4)}, {selectedRoute.destination_lng?.toFixed(4)}
                       </div>
                     )}
                   </div>

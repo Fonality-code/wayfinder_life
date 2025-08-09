@@ -1,6 +1,6 @@
 import type React from "react"
 import { redirect } from "next/navigation"
-import { ensureProfileAndGetRole } from "@/lib/auth/role"
+import { getAuthenticatedUserWithRole } from "@/lib/auth/debug-auth"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -10,10 +10,10 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  const { user, role } = await ensureProfileAndGetRole()
+  const { user, role } = await getAuthenticatedUserWithRole()
 
   if (!user) redirect("/auth")
-  if (role === "admin") redirect("/admin")
+
 
   return <>{children}</>
 }
