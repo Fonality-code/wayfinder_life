@@ -117,19 +117,22 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Package with this tracking number already exists" }, { status: 409 })
     }
 
-    // Insert new package using existing schema (avoid profile table access during RLS issues)
+    // Insert new package using updated schema with user_id
     const { data, error } = await supabase
       .from("packages")
       .insert({
         tracking_number,
+        carrier: carrier || "Unknown",
         sender_name: expected_from || "Unknown",
-        sender_address: "Unknown", // Default value
-        recipient_name: auth.user?.email || "Unknown", // Use email instead of profile lookup
-        recipient_address: "Unknown", // Default value
+        sender_address: "Unknown", // Will be enhanced later
+        recipient_name: auth.user?.email || "Unknown",
+        recipient_address: "Unknown", // Will be enhanced later
+        recipient_email: auth.user?.email || "",
         package_type: description || "package",
         weight: null,
-        status: "pending"
-        // user_id will be added after schema migration
+        status: "pending",
+        notes: notes || null,
+        user_id: auth.user.id // Now available after schema migration
       })
       .select()
       .single()
