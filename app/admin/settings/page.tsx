@@ -11,6 +11,7 @@ import { Switch } from "@/components/ui/switch"
 import { Settings, Shield, Bell, Globe, Database, Key } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 import { GradientCard } from "@/components/ui/gradient-card"
+import SchemaMigrationPanel from "@/components/admin/schema-migration-panel"
 
 export default function SettingsPage() {
   const [loading, setLoading] = useState(true)
@@ -96,10 +97,11 @@ export default function SettingsPage() {
 
       {/* Main Content */}
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 max-w-2xl">
+        <TabsList className="grid w-full grid-cols-5 max-w-3xl">
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          <TabsTrigger value="database">Database</TabsTrigger>
           <TabsTrigger value="integrations">Integrations</TabsTrigger>
         </TabsList>
 
