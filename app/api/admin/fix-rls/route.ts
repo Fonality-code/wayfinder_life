@@ -15,80 +15,59 @@ export async function POST() {
       return NextResponse.json({ error: "Admin access required" }, { status: 403 })
     }
 
+    // Since we can't execute raw SQL easily, let's provide instructions for manual fix
     const admin = createAdminClient()
 
-    // Execute the RLS fix step by step
-    const fixes = [
-      // Disable RLS on profiles temporarily
-      "ALTER TABLE profiles DISABLE ROW LEVEL SECURITY",
+    // Test if we can access the profiles table without issues
+    try {
+      const { data: testProfiles, error: testError } = await admin
+        .from("profiles")
+        .select("id, role")
+        .limit(1)
 
-      // Drop problematic policies
-      `DROP POLICY IF EXISTS "Users can view own profile" ON profiles`,
-      `DROP POLICY IF EXISTS "Users can update own profile" ON profiles`,
-      `DROP POLICY IF EXISTS "Admins can view all profiles" ON profiles`,
-
-      // Create simple policies
-      `CREATE POLICY "profiles_select_own" ON profiles FOR SELECT USING (auth.uid() = id)`,
-      `CREATE POLICY "profiles_update_own" ON profiles FOR UPDATE USING (auth.uid() = id)`,
-
-      // Re-enable RLS
-      "ALTER TABLE profiles ENABLE ROW LEVEL SECURITY",
-
-      // Fix package policies
-      `DROP POLICY IF EXISTS "Admins can view all packages" ON packages`,
-      `DROP POLICY IF EXISTS "Admins can insert packages" ON packages`,
-      `DROP POLICY IF EXISTS "Admins can update packages" ON packages`,
-      `DROP POLICY IF EXISTS "Users can view own packages" ON packages`,
-      `DROP POLICY IF EXISTS "Users can create own packages" ON packages`,
-      `DROP POLICY IF EXISTS "Admins can manage all packages" ON packages`,
-      `CREATE POLICY "packages_public_select" ON packages FOR SELECT USING (true)`,
-
-      // Fix tracking policies
-      `DROP POLICY IF EXISTS "Users can view tracking updates for own packages" ON tracking_updates`,
-      `DROP POLICY IF EXISTS "Admins can manage all tracking updates" ON tracking_updates`,
-      `CREATE POLICY "tracking_updates_public_select" ON tracking_updates FOR SELECT USING (true)`,
-
-      // Fix routes policies
-      `DROP POLICY IF EXISTS "Admins can manage routes" ON routes`,
-      `DROP POLICY IF EXISTS "Anyone can view routes" ON routes`,
-      `CREATE POLICY "routes_public_select" ON routes FOR SELECT USING (true)`,
-
-      // Remove app_settings policies
-      `DROP POLICY IF EXISTS "Admin can manage app settings" ON app_settings`
-    ]
-
-    const results = []
-
-    for (const sql of fixes) {
-      try {
-        await admin.rpc('exec_sql', { sql })
-        results.push({ sql, success: true })
-      } catch (error: any) {
-        // Some errors are expected (like dropping non-existent policies)
-        results.push({
-          sql,
-          success: false,
-          error: error.message,
-          expected: sql.includes("DROP POLICY IF EXISTS")
-        })
+      if (testError) {
+        throw testError
       }
+
+      return NextResponse.json({
+        message: "Database access test successful",
+        recommendation: "The RLS recursion issue needs to be fixed manually through your database admin panel",
+        instructions: [
+          "1. Access your Supabase dashboard",
+          "2. Go to SQL Editor",
+          "3. Copy and execute the contents of scripts/fix-rls-recursion-final.sql",
+          "4. This will properly clean up existing policies and create new non-recursive ones"
+        ],
+        alternative: "You can also run: ALTER TABLE profiles DISABLE ROW LEVEL SECURITY; temporarily to bypass the issue",
+        testResult: {
+          profilesAccessible: true,
+          sampleCount: testProfiles?.length || 0
+        }
+      })
+
+    } catch (error: any) {
+      // If we get a recursion error, provide specific guidance
+      if (error.message?.includes("infinite recursion") || error.message?.includes("recursion")) {
+        return NextResponse.json({
+          error: "RLS recursion detected",
+          message: "The profiles table has recursive policies that need manual fixing",
+          urgentFix: "Execute this SQL immediately in your database: ALTER TABLE profiles DISABLE ROW LEVEL SECURITY;",
+          fullFix: "Then run the complete fix script: scripts/fix-rls-recursion.sql",
+          explanation: "The current RLS policies on profiles table reference themselves when checking admin roles, causing infinite recursion"
+        }, { status: 500 })
+      }
+
+      throw error
     }
-
-    return NextResponse.json({
-      message: "RLS recursion fix completed",
-      results,
-      summary: {
-        total: fixes.length,
-        successful: results.filter(r => r.success).length,
-        failed: results.filter(r => !r.success && !r.expected).length,
-        expected_failures: results.filter(r => !r.success && r.expected).length
-      }
-    })
 
   } catch (error: any) {
     console.error("RLS fix error:", error)
     return NextResponse.json(
-      { error: "Failed to fix RLS recursion", message: error?.message || "Unknown error" },
+      {
+        error: "Failed to test database access",
+        message: error?.message || "Unknown error",
+        recommendation: "Disable RLS temporarily: ALTER TABLE profiles DISABLE ROW LEVEL SECURITY;"
+      },
       { status: 500 }
     )
   }

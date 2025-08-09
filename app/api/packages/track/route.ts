@@ -55,7 +55,7 @@ export async function GET(req: Request) {
       ...pkg,
       carrier: "Unknown", // Default since column doesn't exist yet
       origin: pkg.sender_address || "Unknown",
-      destination: pkg.recipient_address || "Unknown", 
+      destination: pkg.recipient_address || "Unknown",
       current_location: pkg.status === "delivered" ? "Delivered" : "In Transit",
       estimated_delivery: null, // Will be null until column exists
       is_owned: true // Assume owned for now since we found it

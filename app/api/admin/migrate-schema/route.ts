@@ -45,7 +45,7 @@ export async function POST() {
         const { error } = await admin.rpc("exec", {
           query: `ALTER TABLE packages ADD COLUMN IF NOT EXISTS ${column.name} ${column.type};`
         })
-        
+
         if (error) {
           console.warn(`⚠️ Could not add column ${column.name}:`, error.message)
           results.push({ column: column.name, status: "failed", error: error.message })
@@ -64,9 +64,9 @@ export async function POST() {
       await admin.rpc("exec", {
         query: `
           ALTER TABLE packages DROP CONSTRAINT IF EXISTS packages_status_check;
-          ALTER TABLE packages ADD CONSTRAINT packages_status_check 
+          ALTER TABLE packages ADD CONSTRAINT packages_status_check
             CHECK (status IN (
-              'pending', 'shipped', 'in_transit', 'out_for_delivery', 
+              'pending', 'shipped', 'in_transit', 'out_for_delivery',
               'delivered', 'returned', 'cancelled', 'exception', 'failed_delivery'
             ));
         `
@@ -116,7 +116,7 @@ export async function GET() {
     }
 
     const requiredColumns = [
-      "carrier", "recipient_email", "origin", "destination", 
+      "carrier", "recipient_email", "origin", "destination",
       "current_location", "estimated_delivery", "notes", "dimensions", "user_id"
     ]
 
