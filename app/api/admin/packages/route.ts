@@ -17,6 +17,8 @@ const PackageSchema = z.object({
   package_type: z.string().min(1),
   weight: z.number().finite().nullable().optional(),
   status: z.enum(["pending", "in_transit", "delivered", "cancelled"]).default("pending"),
+  carrier: z.string().min(1).optional(),
+  notes: z.string().optional(),
 })
 
 export async function GET(req: Request) {

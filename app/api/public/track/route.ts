@@ -31,6 +31,8 @@ export async function GET(req: Request) {
         package_type,
         weight,
         status,
+        carrier,
+        notes,
         created_at,
         updated_at
       `)
@@ -49,7 +51,7 @@ export async function GET(req: Request) {
     // Transform to match expected interface
     const transformedPkg = {
       ...pkg,
-      carrier: "Unknown", // Default since column doesn't exist yet
+      carrier: pkg.carrier || "Unknown",
       origin: pkg.sender_address || "Unknown",
       destination: pkg.recipient_address || "Unknown",
       current_location: pkg.status === "delivered" ? "Delivered" : "In Transit",

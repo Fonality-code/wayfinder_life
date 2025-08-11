@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -95,6 +96,8 @@ export default function PackagesPage() {
         ? Number.parseFloat(formData.get("weight") as string)
         : null,
       status: formData.get("status") as "pending" | "in_transit" | "delivered" | "cancelled",
+      carrier: formData.get("carrier") as string,
+      notes: formData.get("notes") as string,
     }
 
     try {
@@ -214,31 +217,15 @@ export default function PackagesPage() {
               </DialogDescription>
             </DialogHeader>
             <form action={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="tracking_number">Tracking Number *</Label>
-                  <Input
-                    id="tracking_number"
-                    name="tracking_number"
-                    defaultValue={editingPackage?.tracking_number}
-                    placeholder="e.g., 1Z999AA10123456784"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="status">Status</Label>
-                  <Select name="status" defaultValue={editingPackage?.status || "pending"}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="in_transit">In Transit</SelectItem>
-                      <SelectItem value="delivered">Delivered</SelectItem>
-                      <SelectItem value="cancelled">Cancelled</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="tracking_number">Tracking Number *</Label>
+                <Input
+                  id="tracking_number"
+                  name="tracking_number"
+                  defaultValue={editingPackage?.tracking_number}
+                  placeholder="e.g., 1Z999AA10123456784"
+                  required
+                />
               </div>
 
               <div className="space-y-4">
@@ -311,6 +298,50 @@ export default function PackagesPage() {
                     placeholder="0.5"
                   />
                 </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="carrier">Carrier</Label>
+                  <Select name="carrier" defaultValue={editingPackage?.carrier ?? ""}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select carrier" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="FedEx">FedEx</SelectItem>
+                      <SelectItem value="UPS">UPS</SelectItem>
+                      <SelectItem value="DHL">DHL</SelectItem>
+                      <SelectItem value="USPS">USPS</SelectItem>
+                      <SelectItem value="Amazon">Amazon</SelectItem>
+                      <SelectItem value="Local Courier">Local Courier</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="status">Status *</Label>
+                  <Select name="status" defaultValue={editingPackage?.status ?? "pending"}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="in_transit">In Transit</SelectItem>
+                      <SelectItem value="delivered">Delivered</SelectItem>
+                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="notes">Notes</Label>
+                <Textarea
+                  id="notes"
+                  name="notes"
+                  defaultValue={editingPackage?.notes ?? ""}
+                  placeholder="Additional notes or special instructions..."
+                />
               </div>
 
               <Button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-purple-600">

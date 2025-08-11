@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { PackageSearch, ShieldCheck, Truck, Zap } from 'lucide-react'
+import { PackageSearch, ShieldCheck, Truck, Zap, Globe, Clock, CheckCircle, Star, Users, MapPin } from 'lucide-react'
 import Link from "next/link"
 import { PublicTrackingForm } from "@/components/tracking/public-tracking-form"
 
@@ -28,8 +28,24 @@ export default function HomePage() {
               Track every package with confidence
             </h1>
             <p className="mt-4 max-w-2xl text-pretty text-white/90 sm:text-lg">
-              No login required - just enter your tracking number to get real-time updates and delivery insights.
+              Experience seamless package tracking across all major carriers worldwide. Get instant updates,
+              delivery notifications, and detailed tracking history - no registration required.
             </p>
+
+            <div className="mt-6 flex flex-wrap gap-4 text-sm text-white/80">
+              <div className="flex items-center gap-2">
+                <Globe className="h-4 w-4" />
+                <span>Global Coverage</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                <span>24/7 Monitoring</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4" />
+                <span>99.9% Accuracy</span>
+              </div>
+            </div>
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link href="#tracking">
@@ -45,9 +61,10 @@ export default function HomePage() {
               </Link>
             </div>
 
-            <div className="mt-8 grid max-w-xl grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="mt-8 grid max-w-xl grid-cols-1 gap-4 sm:grid-cols-4">
               <StatCard icon={<Truck className="h-5 w-5" />} label="Carriers" value="50+" />
-              <StatCard icon={<Zap className="h-5 w-5" />} label="Realtime updates" value="Live" />
+              <StatCard icon={<Globe className="h-5 w-5" />} label="Countries" value="180+" />
+              <StatCard icon={<Zap className="h-5 w-5" />} label="Updates" value="Live" />
               <StatCard icon={<ShieldCheck className="h-5 w-5" />} label="Uptime" value="99.9%" />
             </div>
           </div>
@@ -60,28 +77,104 @@ export default function HomePage() {
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
             Track Your Package
           </h2>
-          <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
-            Get real-time updates on your package delivery. No account required - just enter your tracking number.
+          <p className="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">
+            Enter your tracking number below to get detailed information about your package's journey.
+            We support all major carriers including UPS, FedEx, DHL, USPS, and many more.
+            Get real-time location updates, estimated delivery times, and complete delivery history.
           </p>
+          <div className="mt-6 flex justify-center flex-wrap gap-6 text-sm text-gray-500">
+            <div className="flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-blue-600" />
+              <span>Real-time location tracking</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-green-600" />
+              <span>Accurate delivery estimates</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle className="h-4 w-4 text-purple-600" />
+              <span>Complete delivery history</span>
+            </div>
+          </div>
         </div>
         <PublicTrackingForm />
       </section>
 
       {/* Features */}
       <section className="mx-auto w-full max-w-7xl px-6 py-16 md:py-24">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Why Choose Wayfinder?</h2>
+          <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">Comprehensive tracking, instant results, and global coverage for all your shipments.</p>
+        </div>
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-          <Feature
-            title="No login required"
-            description="Track packages instantly with just a tracking number - no account setup needed."
-          />
-          <Feature
-            title="Real-time updates"
-            description="Get the latest status updates and location information for your packages."
-          />
-          <Feature
-            title="Multi-carrier support"
-            description="Track packages from all major carriers in one convenient location."
-          />
+          <Feature title="No Registration Required" description="Track instantly with just your tracking number. No sign-up, no hassle." icon={<PackageSearch className="h-6 w-6 text-blue-600" />} />
+          <Feature title="Real-time Updates" description="Get the latest status and location as your package moves through the network." icon={<Zap className="h-6 w-6 text-green-600" />} />
+          <Feature title="Universal Coverage" description="Track packages from UPS, FedEx, DHL, USPS, Amazon, and 50+ other carriers worldwide." icon={<Globe className="h-6 w-6 text-purple-600" />} />
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section className="bg-gray-50">
+        <div className="mx-auto w-full max-w-7xl px-6 py-16 md:py-24">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">How It Works</h2>
+            <p className="mt-4 text-lg text-gray-600">Tracking your package is as simple as 1-2-3.</p>
+          </div>
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+            <div className="text-center">
+              <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4"><span className="text-2xl font-bold text-blue-600">1</span></div>
+              <h3 className="text-xl font-semibold mb-2">Enter Tracking Number</h3>
+              <p className="text-gray-600">Paste or type your tracking number in the search box above. We accept numbers from all major carriers.</p>
+            </div>
+            <div className="text-center">
+              <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4"><span className="text-2xl font-bold text-green-600">2</span></div>
+              <h3 className="text-xl font-semibold mb-2">Get Instant Results</h3>
+              <p className="text-gray-600">See the latest info about your package, including current location and delivery status.</p>
+            </div>
+            <div className="text-center">
+              <div className="mx-auto w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4"><span className="text-2xl font-bold text-purple-600">3</span></div>
+              <h3 className="text-xl font-semibold mb-2">Track Progress</h3>
+              <p className="text-gray-600">View detailed history, estimated delivery, and real-time updates as your package travels.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Supported Carriers */}
+      <section className="mx-auto w-full max-w-7xl px-6 py-16 md:py-24">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            Supported Carriers
+          </h2>
+          <p className="mt-4 text-lg text-gray-600">
+            We work with all major shipping companies worldwide.
+          </p>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 items-center">
+          <div className="text-center p-4 rounded-lg bg-white border">
+            <div className="font-bold text-lg text-brown-600">UPS</div>
+            <p className="text-sm text-gray-500">United Parcel Service</p>
+          </div>
+          <div className="text-center p-4 rounded-lg bg-white border">
+            <div className="font-bold text-lg text-purple-600">FedEx</div>
+            <p className="text-sm text-gray-500">Federal Express</p>
+          </div>
+          <div className="text-center p-4 rounded-lg bg-white border">
+            <div className="font-bold text-lg text-yellow-600">DHL</div>
+            <p className="text-sm text-gray-500">Express Delivery</p>
+          </div>
+          <div className="text-center p-4 rounded-lg bg-white border">
+            <div className="font-bold text-lg text-blue-600">USPS</div>
+            <p className="text-sm text-gray-500">US Postal Service</p>
+          </div>
+          <div className="text-center p-4 rounded-lg bg-white border">
+            <div className="font-bold text-lg text-orange-600">Amazon</div>
+            <p className="text-sm text-gray-500">Amazon Logistics</p>
+          </div>
+          <div className="text-center p-4 rounded-lg bg-white border">
+            <div className="font-bold text-lg text-gray-600">+45 More</div>
+            <p className="text-sm text-gray-500">International Carriers</p>
+          </div>
         </div>
       </section>
 
@@ -92,20 +185,20 @@ export default function HomePage() {
             <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
               <div>
                 <h2 className="text-2xl font-semibold tracking-tight md:text-3xl">
-                  Need advanced tracking features?
+                  Need help with your shipment?
                 </h2>
                 <p className="mt-2 text-neutral-600">
-                  For businesses requiring admin dashboards and bulk management.
+                  Get in touch with our support team for assistance.
                 </p>
               </div>
               <div className="flex gap-3">
-                <Link href="/admin">
+                <Link href="/contact">
                   <Button size="lg" className="bg-neutral-900 hover:bg-neutral-800 text-white">
-                    Admin Dashboard
+                    Contact Support
                   </Button>
                 </Link>
-                <Link href="/contact">
-                  <Button size="lg" variant="outline">Talk to us</Button>
+                <Link href="/help">
+                  <Button size="lg" variant="outline">Help Center</Button>
                 </Link>
               </div>
             </div>
@@ -140,9 +233,18 @@ function StatCard({
   )
 }
 
-function Feature({ title, description }: { title: string; description: string }) {
+function Feature({ title, description, icon }: {
+  title: string;
+  description: string;
+  icon?: React.ReactNode
+}) {
   return (
     <div className="rounded-xl border p-6">
+      {icon && (
+        <div className="mb-4">
+          {icon}
+        </div>
+      )}
       <h3 className="text-lg font-semibold">{title}</h3>
       <p className="mt-2 text-neutral-600">{description}</p>
     </div>
