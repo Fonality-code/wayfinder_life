@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { PackageSearch, ShieldCheck, Truck, Zap, Globe, Clock, CheckCircle, Star, Users, MapPin } from 'lucide-react'
 import Link from "next/link"
 import { PublicTrackingForm } from "@/components/tracking/public-tracking-form"
+import { ActivePackagesWithRoutes } from "@/components/homepage/active-packages-with-routes"
 
 export default function HomePage() {
   return (
@@ -98,6 +99,36 @@ export default function HomePage() {
           </div>
         </div>
         <PublicTrackingForm />
+      </section>
+
+      {/* Live Package Tracking */}
+      <section className="bg-gradient-to-br from-gray-50 to-blue-50/30">
+        <div className="mx-auto w-full max-w-7xl px-6 py-16 md:py-24">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+              Live Package Tracking
+            </h2>
+            <p className="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">
+              Watch packages move in real-time across our network. See live routes, delivery progress, 
+              and estimated arrival times for shipments currently in transit.
+            </p>
+            <div className="mt-6 flex justify-center flex-wrap gap-6 text-sm text-gray-500">
+              <div className="flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-blue-600" />
+                <span>Interactive route visualization</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Truck className="h-4 w-4 text-green-600" />
+                <span>Live delivery updates</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-purple-600" />
+                <span>Real-time tracking</span>
+              </div>
+            </div>
+          </div>
+          <ActivePackagesWithRoutes />
+        </div>
       </section>
 
       {/* Features */}

@@ -18,7 +18,7 @@ export async function GET(req: Request) {
     // Use anonymous Supabase client for public access
     const supabase = await createClient()
 
-    // Find the package - using existing schema columns
+    // Find the package - using existing schema columns including route information
     const { data: pkg, error } = await supabase
       .from("packages")
       .select(`
@@ -34,7 +34,20 @@ export async function GET(req: Request) {
         carrier,
         notes,
         created_at,
-        updated_at
+        updated_at,
+        route:routes!packages_route_id_fkey(
+          id,
+          name,
+          origin,
+          destination,
+          estimated_duration_hours,
+          origin_lat,
+          origin_lng,
+          destination_lat,
+          destination_lng,
+          waypoints,
+          color
+        )
       `)
       .eq("tracking_number", trackingNumber)
       .maybeSingle()

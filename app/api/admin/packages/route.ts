@@ -19,6 +19,7 @@ const PackageSchema = z.object({
   status: z.enum(["pending", "in_transit", "delivered", "cancelled"]).default("pending"),
   carrier: z.string().min(1).optional(),
   notes: z.string().optional(),
+  route_id: z.string().uuid().optional(),
 })
 
 export async function GET(req: Request) {
@@ -36,7 +37,22 @@ export async function GET(req: Request) {
     const admin = createAdminClient()
     let query = admin
       .from("packages")
-      .select("*", { count: "exact" })
+      .select(`
+        *,
+        route:routes!packages_route_id_fkey(
+          id,
+          name,
+          origin,
+          destination,
+          estimated_duration_hours,
+          origin_lat,
+          origin_lng,
+          destination_lat,
+          destination_lng,
+          waypoints,
+          color
+        )
+      `, { count: "exact" })
       .order("created_at", { ascending: false })
       .range(from, to)
 

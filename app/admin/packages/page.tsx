@@ -36,6 +36,7 @@ import type { Package as PackageType } from "@/lib/types"
 
 export default function PackagesPage() {
   const [packages, setPackages] = useState<PackageType[]>([])
+  const [routes, setRoutes] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingPackage, setEditingPackage] = useState<PackageType | null>(null)
@@ -50,6 +51,7 @@ export default function PackagesPage() {
 
   useEffect(() => {
     fetchPackages()
+    fetchRoutes()
   }, [currentPage, searchTerm, statusFilter])
 
   useEffect(() => {
@@ -60,6 +62,17 @@ export default function PackagesPage() {
       fetchPackages()
     }
   }, [searchTerm, statusFilter])
+
+  const fetchRoutes = async () => {
+    try {
+      const res = await fetch("/api/admin/routes", { cache: "no-store" })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || "Failed to fetch routes")
+      setRoutes(json.data || [])
+    } catch (e: any) {
+      console.error("Failed to fetch routes:", e)
+    }
+  }
 
   const fetchPackages = async () => {
     try {
@@ -98,6 +111,7 @@ export default function PackagesPage() {
       status: formData.get("status") as "pending" | "in_transit" | "delivered" | "cancelled",
       carrier: formData.get("carrier") as string,
       notes: formData.get("notes") as string,
+      route_id: (formData.get("route_id") as string) === "none" ? null : (formData.get("route_id") as string),
     }
 
     try {
@@ -332,6 +346,24 @@ export default function PackagesPage() {
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="route_id">Delivery Route (optional)</Label>
+                <Select name="route_id" defaultValue={editingPackage?.route_id ?? "none"}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a route" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No specific route</SelectItem>
+                    {routes.map((route) => (
+                      <SelectItem key={route.id} value={route.id}>
+                        {route.name} ({route.origin} → {route.destination})
+                        {route.estimated_duration_hours && ` - ${route.estimated_duration_hours}h`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
