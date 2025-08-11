@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { PackageSearch, ShieldCheck, Truck, Zap } from 'lucide-react'
 import Link from "next/link"
+import { PublicTrackingForm } from "@/components/tracking/public-tracking-form"
 
 export default function HomePage() {
   return (
@@ -27,11 +28,11 @@ export default function HomePage() {
               Track every package with confidence
             </h1>
             <p className="mt-4 max-w-2xl text-pretty text-white/90 sm:text-lg">
-              One dashboard for shipments, notifications, and delivery insights—built for teams and power users.
+              No login required - just enter your tracking number to get real-time updates and delivery insights.
             </p>
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <Link href="/dashboard">
+              <Link href="#tracking">
                 <Button size="lg" className="bg-neutral-900 hover:bg-neutral-800 text-white">
                   <PackageSearch className="mr-2 h-5 w-5" />
                   Track a package
@@ -53,20 +54,33 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Package Tracking Section */}
+      <section id="tracking" className="mx-auto w-full max-w-7xl px-6 py-16 md:py-24">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
+            Track Your Package
+          </h2>
+          <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
+            Get real-time updates on your package delivery. No account required - just enter your tracking number.
+          </p>
+        </div>
+        <PublicTrackingForm />
+      </section>
+
       {/* Features */}
       <section className="mx-auto w-full max-w-7xl px-6 py-16 md:py-24">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           <Feature
-            title="Unified tracking"
-            description="Search across all carriers in one place and see status at a glance."
+            title="No login required"
+            description="Track packages instantly with just a tracking number - no account setup needed."
           />
           <Feature
-            title="Smart notifications"
-            description="Get email alerts for status changes, delays, and delivery windows."
+            title="Real-time updates"
+            description="Get the latest status updates and location information for your packages."
           />
           <Feature
-            title="Team-ready"
-            description="Shareable lists, roles, and admin tools baked in from day one."
+            title="Multi-carrier support"
+            description="Track packages from all major carriers in one convenient location."
           />
         </div>
       </section>
@@ -78,16 +92,16 @@ export default function HomePage() {
             <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
               <div>
                 <h2 className="text-2xl font-semibold tracking-tight md:text-3xl">
-                  Ready to streamline your shipments?
+                  Need advanced tracking features?
                 </h2>
                 <p className="mt-2 text-neutral-600">
-                  Start tracking in minutes—no credit card required.
+                  For businesses requiring admin dashboards and bulk management.
                 </p>
               </div>
               <div className="flex gap-3">
-                <Link href="/dashboard">
+                <Link href="/admin">
                   <Button size="lg" className="bg-neutral-900 hover:bg-neutral-800 text-white">
-                    Get started
+                    Admin Dashboard
                   </Button>
                 </Link>
                 <Link href="/contact">
