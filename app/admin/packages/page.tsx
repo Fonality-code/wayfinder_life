@@ -110,8 +110,35 @@ export default function PackagesPage() {
         : null,
       status: formData.get("status") as "pending" | "in_transit" | "delivered" | "cancelled",
       carrier: formData.get("carrier") as string,
+      transport_type: formData.get("transport_type") as string,
       notes: formData.get("notes") as string,
       route_id: (formData.get("route_id") as string) === "none" ? null : (formData.get("route_id") as string),
+      // Payment fields
+      payment_method: formData.get("payment_method") as string,
+      payment_status: formData.get("payment_status") as string,
+      payment_amount: (formData.get("payment_amount") as string)?.length
+        ? Number.parseFloat(formData.get("payment_amount") as string)
+        : null,
+      payment_currency: formData.get("payment_currency") as string,
+      payment_date: (formData.get("payment_date") as string)?.length
+        ? new Date(formData.get("payment_date") as string).toISOString()
+        : null,
+      // Cost fields
+      shipping_cost: (formData.get("shipping_cost") as string)?.length
+        ? Number.parseFloat(formData.get("shipping_cost") as string)
+        : null,
+      handling_fee: (formData.get("handling_fee") as string)?.length
+        ? Number.parseFloat(formData.get("handling_fee") as string)
+        : null,
+      insurance_cost: (formData.get("insurance_cost") as string)?.length
+        ? Number.parseFloat(formData.get("insurance_cost") as string)
+        : null,
+      total_cost: (formData.get("total_cost") as string)?.length
+        ? Number.parseFloat(formData.get("total_cost") as string)
+        : null,
+      expected_delivery_time: (formData.get("expected_delivery_time") as string)?.length
+        ? Number.parseInt(formData.get("expected_delivery_time") as string)
+        : null,
     }
 
     try {
@@ -333,6 +360,24 @@ export default function PackagesPage() {
                   </Select>
                 </div>
                 <div className="space-y-2">
+                  <Label htmlFor="transport_type">Transport Type</Label>
+                  <Select name="transport_type" defaultValue={editingPackage?.transport_type ?? ""}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select transport type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="air">✈️ Air (Fastest)</SelectItem>
+                      <SelectItem value="truck">🚛 Truck (Standard)</SelectItem>
+                      <SelectItem value="ship">🚢 Ship (Economy)</SelectItem>
+                      <SelectItem value="rail">🚂 Rail (Eco-friendly)</SelectItem>
+                      <SelectItem value="local">🚐 Local Delivery</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
                   <Label htmlFor="status">Status *</Label>
                   <Select name="status" defaultValue={editingPackage?.status ?? "pending"}>
                     <SelectTrigger>
@@ -345,6 +390,154 @@ export default function PackagesPage() {
                       <SelectItem value="cancelled">Cancelled</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="expected_delivery_time">Expected Delivery Time (hours)</Label>
+                  <Input
+                    id="expected_delivery_time"
+                    name="expected_delivery_time"
+                    type="number"
+                    min="1"
+                    defaultValue={editingPackage?.expected_delivery_time ?? ""}
+                    placeholder="24"
+                  />
+                </div>
+              </div>
+
+              {/* Payment Information Section */}
+              <div className="space-y-4">
+                <Label className="text-base font-semibold">Payment Information</Label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="payment_method">Payment Method</Label>
+                    <Select name="payment_method" defaultValue={editingPackage?.payment_method ?? ""}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select payment method" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="credit_card">💳 Credit Card</SelectItem>
+                        <SelectItem value="debit_card">💳 Debit Card</SelectItem>
+                        <SelectItem value="paypal">💰 PayPal</SelectItem>
+                        <SelectItem value="bank_transfer">🏦 Bank Transfer</SelectItem>
+                        <SelectItem value="cash">💵 Cash</SelectItem>
+                        <SelectItem value="check">📝 Check</SelectItem>
+                        <SelectItem value="cod">📦 Cash on Delivery</SelectItem>
+                        <SelectItem value="prepaid">🎫 Prepaid</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="payment_status">Payment Status</Label>
+                    <Select name="payment_status" defaultValue={editingPackage?.payment_status ?? "pending"}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select payment status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pending">⏳ Pending</SelectItem>
+                        <SelectItem value="paid">✅ Paid</SelectItem>
+                        <SelectItem value="partial">⚠️ Partial</SelectItem>
+                        <SelectItem value="refunded">↩️ Refunded</SelectItem>
+                        <SelectItem value="cancelled">❌ Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="payment_amount">Amount Paid</Label>
+                    <Input
+                      id="payment_amount"
+                      name="payment_amount"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      defaultValue={editingPackage?.payment_amount ?? ""}
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="payment_currency">Currency</Label>
+                    <Select name="payment_currency" defaultValue={editingPackage?.payment_currency ?? "USD"}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Currency" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="USD">USD ($)</SelectItem>
+                        <SelectItem value="EUR">EUR (€)</SelectItem>
+                        <SelectItem value="GBP">GBP (£)</SelectItem>
+                        <SelectItem value="CAD">CAD (C$)</SelectItem>
+                        <SelectItem value="AUD">AUD (A$)</SelectItem>
+                        <SelectItem value="JPY">JPY (¥)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="payment_date">Payment Date</Label>
+                    <Input
+                      id="payment_date"
+                      name="payment_date"
+                      type="datetime-local"
+                      defaultValue={editingPackage?.payment_date ? new Date(editingPackage.payment_date).toISOString().slice(0, 16) : ""}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Cost Breakdown Section */}
+              <div className="space-y-4">
+                <Label className="text-base font-semibold">Cost Breakdown</Label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="shipping_cost">Shipping Cost</Label>
+                    <Input
+                      id="shipping_cost"
+                      name="shipping_cost"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      defaultValue={editingPackage?.shipping_cost ?? ""}
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="handling_fee">Handling Fee</Label>
+                    <Input
+                      id="handling_fee"
+                      name="handling_fee"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      defaultValue={editingPackage?.handling_fee ?? ""}
+                      placeholder="0.00"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="insurance_cost">Insurance Cost</Label>
+                    <Input
+                      id="insurance_cost"
+                      name="insurance_cost"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      defaultValue={editingPackage?.insurance_cost ?? ""}
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="total_cost">Total Cost</Label>
+                    <Input
+                      id="total_cost"
+                      name="total_cost"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      defaultValue={editingPackage?.total_cost ?? ""}
+                      placeholder="0.00"
+                    />
+                  </div>
                 </div>
               </div>
 

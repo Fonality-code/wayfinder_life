@@ -20,6 +20,18 @@ const PackageSchema = z.object({
   carrier: z.string().min(1).optional(),
   notes: z.string().optional(),
   route_id: z.string().uuid().optional(),
+  // Payment and transport features
+  transport_type: z.enum(["air", "ship", "truck", "rail", "local"]).optional(),
+  payment_method: z.enum(["credit_card", "debit_card", "paypal", "bank_transfer", "cash", "check", "cod", "prepaid"]).optional(),
+  payment_amount: z.number().finite().positive().nullable().optional(),
+  payment_currency: z.string().min(3).max(3).optional(),
+  payment_status: z.enum(["pending", "paid", "partial", "refunded", "cancelled"]).default("pending"),
+  payment_date: z.string().datetime().nullable().optional(),
+  shipping_cost: z.number().finite().positive().nullable().optional(),
+  total_cost: z.number().finite().positive().nullable().optional(),
+  insurance_cost: z.number().finite().min(0).nullable().optional(),
+  handling_fee: z.number().finite().min(0).nullable().optional(),
+  expected_delivery_time: z.number().int().positive().nullable().optional(),
 })
 
 export async function GET(req: Request) {

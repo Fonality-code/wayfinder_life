@@ -43,7 +43,10 @@ export default function AddPackageClient() {
     custom_carrier: "",
     expected_from: "",
     description: "",
-    notes: ""
+    notes: "",
+    transport_type: "",
+    payment_amount: "",
+    payment_method: ""
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -73,7 +76,10 @@ export default function AddPackageClient() {
           carrier,
           expected_from: formData.expected_from.trim() || null,
           description: formData.description.trim() || null,
-          notes: formData.notes.trim() || null
+          notes: formData.notes.trim() || null,
+          transport_type: formData.transport_type || null,
+          payment_amount: formData.payment_amount ? parseFloat(formData.payment_amount) : null,
+          payment_method: formData.payment_method || null
         })
       })
 
@@ -92,7 +98,10 @@ export default function AddPackageClient() {
           custom_carrier: "",
           expected_from: "",
           description: "",
-          notes: ""
+          notes: "",
+          transport_type: "",
+          payment_amount: "",
+          payment_method: ""
         })
 
         // Redirect to dashboard after a short delay
@@ -244,6 +253,74 @@ export default function AddPackageClient() {
               <p className="text-xs text-slate-500">
                 What&apos;s in this package? (optional)
               </p>
+            </div>
+
+            {/* Transport Type */}
+            <div className="space-y-2">
+              <Label htmlFor="transport_type" className="text-sm font-medium">
+                Transport Type
+              </Label>
+              <Select
+                value={formData.transport_type}
+                onValueChange={(value) => handleInputChange("transport_type", value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select transport type (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="air">✈️ Air (Fastest - 1-3 days)</SelectItem>
+                  <SelectItem value="truck">🚛 Truck (Standard - 3-7 days)</SelectItem>
+                  <SelectItem value="ship">🚢 Ship (Economy - 7-30 days)</SelectItem>
+                  <SelectItem value="rail">🚂 Rail (Eco-friendly - 5-10 days)</SelectItem>
+                  <SelectItem value="local">🚐 Local Delivery (Same day)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-slate-500">
+                How will this package be transported?
+              </p>
+            </div>
+
+            {/* Payment Information */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="payment_method" className="text-sm font-medium">
+                  Payment Method
+                </Label>
+                <Select
+                  value={formData.payment_method}
+                  onValueChange={(value) => handleInputChange("payment_method", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="How did you pay?" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="credit_card">💳 Credit Card</SelectItem>
+                    <SelectItem value="debit_card">💳 Debit Card</SelectItem>
+                    <SelectItem value="paypal">💰 PayPal</SelectItem>
+                    <SelectItem value="bank_transfer">🏦 Bank Transfer</SelectItem>
+                    <SelectItem value="cash">💵 Cash</SelectItem>
+                    <SelectItem value="cod">📦 Cash on Delivery</SelectItem>
+                    <SelectItem value="prepaid">🎫 Prepaid</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="payment_amount" className="text-sm font-medium">
+                  Amount Paid
+                </Label>
+                <Input
+                  id="payment_amount"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="0.00"
+                  value={formData.payment_amount}
+                  onChange={(e) => handleInputChange("payment_amount", e.target.value)}
+                />
+                <p className="text-xs text-slate-500">
+                  How much did you pay for shipping?
+                </p>
+              </div>
             </div>
 
             {/* Notes */}

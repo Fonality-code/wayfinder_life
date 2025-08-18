@@ -17,6 +17,21 @@ const UpdateSchema = z.object({
   package_type: z.string().min(1).optional(),
   weight: z.number().finite().nullable().optional(),
   status: z.enum(["pending", "in_transit", "delivered", "cancelled"]).optional(),
+  carrier: z.string().min(1).optional(),
+  notes: z.string().optional(),
+  route_id: z.string().uuid().nullable().optional(),
+  // Payment and transport features
+  transport_type: z.enum(["air", "ship", "truck", "rail", "local"]).nullable().optional(),
+  payment_method: z.enum(["credit_card", "debit_card", "paypal", "bank_transfer", "cash", "check", "cod", "prepaid"]).nullable().optional(),
+  payment_amount: z.number().finite().positive().nullable().optional(),
+  payment_currency: z.string().min(3).max(3).nullable().optional(),
+  payment_status: z.enum(["pending", "paid", "partial", "refunded", "cancelled"]).optional(),
+  payment_date: z.string().datetime().nullable().optional(),
+  shipping_cost: z.number().finite().positive().nullable().optional(),
+  total_cost: z.number().finite().positive().nullable().optional(),
+  insurance_cost: z.number().finite().min(0).nullable().optional(),
+  handling_fee: z.number().finite().min(0).nullable().optional(),
+  expected_delivery_time: z.number().int().positive().nullable().optional(),
 })
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {

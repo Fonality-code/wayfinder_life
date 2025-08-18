@@ -11,6 +11,28 @@ export interface Package {
   user_id?: string | null
   created_at: string
   updated_at: string
+  // Existing additional fields
+  carrier?: string
+  recipient_email?: string
+  origin?: string
+  destination?: string
+  current_location?: string
+  estimated_delivery?: string
+  dimensions?: string
+  notes?: string
+  route_id?: string | null
+  // New payment and transport fields
+  transport_type?: "air" | "ship" | "truck" | "rail" | "local" | null
+  payment_method?: "credit_card" | "debit_card" | "paypal" | "bank_transfer" | "cash" | "check" | "cod" | "prepaid" | null
+  payment_amount?: number | null
+  payment_currency?: string
+  payment_status?: "pending" | "paid" | "partial" | "refunded" | "cancelled"
+  payment_date?: string | null
+  shipping_cost?: number | null
+  total_cost?: number | null
+  insurance_cost?: number | null
+  handling_fee?: number | null
+  expected_delivery_time?: number | null
 }
 
 export interface TrackingUpdate {

@@ -38,7 +38,27 @@ export async function GET(req: Request) {
         weight,
         status,
         created_at,
-        updated_at
+        updated_at,
+        carrier,
+        recipient_email,
+        origin,
+        destination,
+        current_location,
+        estimated_delivery,
+        dimensions,
+        notes,
+        route_id,
+        transport_type,
+        payment_method,
+        payment_amount,
+        payment_currency,
+        payment_status,
+        payment_date,
+        shipping_cost,
+        total_cost,
+        insurance_cost,
+        handling_fee,
+        expected_delivery_time
       `, { count: "exact" })
       .order("created_at", { ascending: false })
       .range(from, to)
@@ -98,7 +118,16 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json()
-    const { tracking_number, carrier, expected_from, description, notes } = body
+    const {
+      tracking_number,
+      carrier,
+      expected_from,
+      description,
+      notes,
+      transport_type,
+      payment_amount,
+      payment_method
+    } = body
 
     if (!tracking_number) {
       return NextResponse.json({ error: "Tracking number is required" }, { status: 400 })
@@ -132,7 +161,12 @@ export async function POST(req: Request) {
         weight: null,
         status: "pending",
         notes: notes || null,
-        user_id: auth.user.id // Now available after schema migration
+        user_id: auth.user.id, // Now available after schema migration
+        transport_type: transport_type || null,
+        payment_amount: payment_amount || null,
+        payment_method: payment_method || null,
+        payment_status: payment_amount > 0 ? "paid" : "pending",
+        payment_currency: "USD"
       })
       .select()
       .single()
