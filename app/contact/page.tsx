@@ -17,8 +17,8 @@ export default function ContactPage() {
       icon: Mail,
       title: "Email Us",
       description: "Get in touch via email",
-      contact: "hello@wayfinder.com",
-      action: "mailto:hello@wayfinder.com",
+      contact: "wayfinder46@gmail.com",
+      action: "mailto:wayfinder46@gmail.com",
     },
     {
       icon: Phone,
